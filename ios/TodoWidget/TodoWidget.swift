@@ -2,12 +2,11 @@ import WidgetKit
 import SwiftUI
 import Foundation // JSON 파싱을 위해 필요
 
-// MARK: - App Group ID (반드시 위에 설정한 App Group ID와 동일해야 합니다!)
-// ⭐️ 이 부분을 Xcode의 'Signing & Capabilities'에서 설정한 실제 App Group ID로 변경하세요!
-let appGroupId = "group.react.native.widget.todo" // 예: "group.com.yourcompany.mytodoapp"
+
+let appGroupId = "group.react.native.widget.todo"
 let todoListKey = "todoListKey"
 
-// MARK: - Provider (위젯 데이터 제공)
+
 // 위젯에 표시될 데이터를 제공하는 역할을 합니다.
 struct Provider: TimelineProvider {
     // 위젯에 표시될 할 일 데이터 모델
@@ -34,8 +33,8 @@ struct Provider: TimelineProvider {
         let entry = Entry(date: Date(), todos: todos)
 
         // 다음 업데이트 시점을 정의합니다.
-        // 여기서는 15분마다 위젯을 업데이트하도록 설정했습니다.
-        let nextUpdateDate = Calendar.current.date(byAdding: .minute, value: 15, to: Date())!
+        // 여기서는 1분마다 위젯을 업데이트하도록 설정했습니다.
+        let nextUpdateDate = Calendar.current.date(byAdding: .minute, value: 1, to: Date())!
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdateDate))
         completion(timeline)
     }
@@ -60,9 +59,7 @@ struct Provider: TimelineProvider {
     }
 }
 
-// MARK: - TodoWidgetEntryView (위젯 UI)
 // 위젯의 실제 UI를 SwiftUI로 정의합니다.
-// ⭐️ MyTodoAppWidgetEntryView -> TodoWidgetEntryView 로 이름 변경
 struct TodoWidgetEntryView : View {
     var entry: Provider.Entry
     // 위젯의 크기 (시스템에서 제공되는 환경 변수)
@@ -72,7 +69,7 @@ struct TodoWidgetEntryView : View {
         ZStack {
             // 위젯 배경색 (선택 사항)
             ContainerRelativeShape()
-                .fill(Color.orange.gradient) // 그라디언트 배경
+                .fill(Color.red.gradient)
 
             VStack(alignment: .leading, spacing: 5) {
                 Text("나의 할 일")
@@ -81,9 +78,10 @@ struct TodoWidgetEntryView : View {
                     .foregroundColor(.white)
                     .padding(.bottom, 2)
 
+
                 // 할 일 목록 표시
                 if entry.todos.isEmpty || (entry.todos.count == 1 && entry.todos[0] == "할 일이 없습니다.") {
-                    Text("ㄴㄴㄴ할 일이 없습니다. 앱에서 추가해보세요!")
+                    Text("할 일이 없습니다. 앱에서 추가해보세요!")
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.8))
                 } else {
@@ -98,7 +96,7 @@ struct TodoWidgetEntryView : View {
                                 .lineLimit(1) // 한 줄로 제한
                         }
                     }
-                    // 더 많은 할 일이 있을 경우 표시
+
                     if entry.todos.count > getDisplayLimit(for: family) {
                         Text("...")
                             .font(.caption)
@@ -128,10 +126,7 @@ struct TodoWidgetEntryView : View {
     }
 }
 
-// MARK: - TodoWidget (위젯 구성)
 // 위젯의 종류, 표시 이름, 설명 등을 정의합니다.
-// ⭐️ MyTodoAppWidget -> TodoWidget 으로 이름 변경
-
 struct TodoWidget: Widget {
     let kind: String = "TodoWidget" // ⭐️ kind도 "TodoWidget"으로 변경
 
@@ -147,9 +142,8 @@ struct TodoWidget: Widget {
     }
 }
 
-// MARK: - Preview (위젯 미리보기)
+
 // Xcode 캔버스에서 위젯을 미리 볼 수 있도록 합니다.
-// ⭐️ MyTodoAppWidgetEntryView -> TodoWidgetEntryView 로 이름 변경
 #Preview(body: {
     TodoWidgetEntryView(entry: Provider.Entry(date: Date(), todos: ["할 일 1", "할 일 2", "할 일 3", "할 일 4"]))
 })

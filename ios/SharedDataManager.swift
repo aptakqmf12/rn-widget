@@ -1,38 +1,38 @@
 // SharedDataManager.swift
 import Foundation
-import WidgetKit // 위젯 업데이트를 위해 필요
+import WidgetKit
 
-@objc(SharedDataManager) // Objective-C Bridge를 위한 설정
+@objc(SharedDataManager)
 class SharedDataManager: NSObject {
 
-    // MARK: - App Group ID (반드시 위에 설정한 App Group ID와 동일해야 합니다!)
-    static let appGroupId = "group.react.native.widget.todo" // ⭐️ 실제 App Group ID로 변경!
-    static let todoListKey = "todoListKey" // 위젯과 공유할 할 일 목록 데이터의 키
+    static let appGroupId = "group.react.native.widget.todo"
+    static let todoListKey = "todoListKey"
 
-    @objc static func saveTodosToSharedDefaults(_ todosJsonString: String) {
+    @objc static func saveTodosToSharedDefaults(_ todosJsonString: String, resolver resolve: RCTPromiseResolveBlock,  rejecter reject: RCTPromiseRejectBlock) {
         if let sharedDefaults = UserDefaults(suiteName: appGroupId) {
             sharedDefaults.set(todosJsonString, forKey: todoListKey)
-            // 위젯에게 데이터가 업데이트되었음을 알립니다.
-            // iOS 15 이상에서는 WidgetCenter.shared.reloadAllTimelines() 사용
-            // iOS 14에서는 WidgetKit.reloadAllTimelines() 사용
             if #available(iOS 15.0, *) {
                 WidgetCenter.shared.reloadAllTimelines()
             } else {
-              WidgetCenter.shared.reloadAllTimelines()
-             // 이거 쓰면안됨
-             //WidgetKit.reloadAllTimelines()
+                WidgetCenter.shared.reloadAllTimelines() // iOS 14+ 에서도 WidgetCenter 사용 가능
             }
             print("Shared todos saved and widget reloaded successfully.")
+            resolve(nil) // 성공 시 resolve 호출 (반환할 데이터가 없으면 nil)
         } else {
-            print("Failed to access shared UserDefaults for App Group: \(appGroupId)")
+            let error = NSError(domain: "SharedDataManager", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to access shared UserDefaults for App Group: \(appGroupId)"])
+            print(error.localizedDescription)
+            reject("shared_defaults_error", error.localizedDescription, error) // 실패 시 reject 호출
         }
     }
 
-    // (선택 사항) 위젯에서 앱으로 데이터를 가져오는 함수도 만들 수 있습니다.
-    @objc static func getTodosFromSharedDefaults() -> String? {
+    // getTodosFromSharedDefaults 함수도 Promise를 사용한다면 동일하게 수정
+    @objc static func getTodosFromSharedDefaults(resolver resolve: RCTPromiseResolveBlock, rejecter reject: RCTPromiseRejectBlock) {
         if let sharedDefaults = UserDefaults(suiteName: appGroupId) {
-            return sharedDefaults.string(forKey: todoListKey)
+            let todosJsonString = sharedDefaults.string(forKey: todoListKey)
+            resolve(todosJsonString)
+        } else {
+            let error = NSError(domain: "SharedDataManager", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to access shared UserDefaults for App Group: \(appGroupId)"])
+            reject("shared_defaults_error", error.localizedDescription, error)
         }
-        return nil
     }
 }
