@@ -17,20 +17,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // iOS 위젯과의 통신을 위한 네이티브 모듈 (나중에 Xcode 설정 필요)
 const { SharedDataManager } = NativeModules;
 
-const TODO_STORAGE_KEY = 'myTodos';
+const TODO_STORAGE_KEY = 'todoListKey`';
 
 export default function App() {
     const [todos, setTodos] = useState([]);
     const [newTodo, setNewTodo] = useState<string>('');
 
     const updateWidget = (currentTodos:any) => {
-        if (Platform.OS === 'ios' && SharedDataManager) {
+
+        if (Platform.OS === 'ios' && SharedDataManager ) {
             try {
                 const widgetData = currentTodos.slice(0, 5).map((todo:any) => todo.text);
-                // saveTodosToSharedDefaults : 위젯에 데이터를 저장하는 함수
                 SharedDataManager.saveTodosToSharedDefaults(JSON.stringify(widgetData))
                     .then(() => {
-                        console.log('Todos sent to widget successfully!');
+                        console.log('Todos sent to widget successfully!', widgetData);
                     })
                     .catch((error:any) => {
                         console.error('Failed to send todos to widget:', error.message);
@@ -43,6 +43,7 @@ export default function App() {
 
     const loadTodos = async () => {
         try {
+            console.log("?FQWfqw")
             const storedTodos = await AsyncStorage.getItem(TODO_STORAGE_KEY);
             if (storedTodos) {
                 setTodos(JSON.parse(storedTodos));
